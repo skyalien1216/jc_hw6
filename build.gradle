@@ -1,0 +1,82 @@
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.jooq:jooq-codegen:3.16.2'
+        classpath 'org.postgresql:postgresql:42.2.5'
+    }
+}
+
+
+plugins {
+    id 'java'
+    id 'application'
+    id "nu.studer.jooq" version "8.0"
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation('org.flywaydb:flyway-core:9.8.2')
+    implementation("org.postgresql:postgresql:42.5.0")
+    implementation("org.jetbrains:annotations:23.0.0")
+
+    implementation('org.jooq:jooq:3.17.5')
+    implementation('org.jooq:jooq-codegen:3.17.5')
+    implementation('org.jooq:jooq-meta:3.17.5')
+    jooqGenerator("org.postgresql:postgresql:42.5.0")
+
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.9.0')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.9.0')
+}
+
+application {
+    mainClass = 'org.java_courses.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+import org.jooq.codegen.GenerationTool
+import org.jooq.meta.jaxb.*
+
+task generate {
+    def outputDirectory = projectDir.toString() + '/src/main/java'
+    def configuration = new Configuration()
+            .withJdbc(new Jdbc()
+                    .withDriver('org.postgresql.Driver')
+                    .withUrl('jdbc:postgresql://localhost/hw6_mainDB')
+                    .withUser('postgres')
+                    .withPassword('skyalien'))
+            .withGenerator(new Generator()
+                    .withDatabase(new Database().withInputSchema("public"))
+                    .withGenerate(new Generate()
+                            .withPojos(true)
+                            .withDaos(true))
+                    .withTarget(new Target()
+                            .withPackageName('generated')
+                            .withDirectory(outputDirectory)))
+
+    doLast {
+        GenerationTool.generate(configuration)
+    }
+}
+
+javafx {
+    version = "11.0.2"
+    modules = [ 'javafx.base' ]
+}
+
+
+
